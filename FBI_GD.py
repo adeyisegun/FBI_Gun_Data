@@ -35,24 +35,51 @@ census_df.head()
 # Transpose the census table
 census_df = census_df.T
 # select relevant columns
-#census_df.drop(['Fact Note'], axis=1, inplace = True)
-#census_df.drop(census_df.iloc[:, [1,7,9,14,36,48,50]],axis = 1)
-#census_df[census_df.iloc[:, [1,7,9,14,36,48,50]]]
-#census_df.iloc[:, [1,7,9,14,36,48,50]].columns.value_counts().sum()
 census_df = census_df.iloc[:, [0,6,8,13,35,47,49]]
 
-new_col_names = ['population_estimate', 'perc_under_18', 'perc_over_65', 
-                 'perc_black', 'perc_Bdeg', 'median_household_income' , 
-                 'perc_poverty']
+new_col_names = ['pop_est', '%_under_18', '%_over_65', 
+                 '%_black', '%_deg', 'median_household_income' , 
+                 '%_poverty']
 census_df.columns = new_col_names
+# Check for missing values
+census_df.isnull().sum()
+
+# convert data types
+census_df.info()
+census_df.describe()
+census_df['pop_est'] = census_df['pop_est'].str.replace(',','').astype(int)
+
+census_df['median_household_income'] = census_df['median_household_income'].str.replace('$','')
+census_df['median_household_income'] = census_df['median_household_income'].str.replace(',','').astype(int)
+
+cols = ['%_under_18', '%_over_65', '%_black', '%_deg','%_poverty']
+for c in cols:
+    census_df[c] = census_df[c].str.replace('%','').astype(float)
+    census_df[c] = census_df[c].apply(lambda x: x*100 if x < 1 else x)
 
 # For the Gun Data:
 # we are going to concentrate our analysis on background checks initiated by an official prior to the issuance of hand guns and long guns only.
 # Hence we will remove every colomn expect for 'month', 'state', 'handgun', 'long_gun'.
-#gun_df.drop(gun_df.iloc[:, 9:],axis = 1, inplace = True)
 gun_df.drop(gun_df.columns.difference(['month', 'state', 'handgun', 'long_gun']), axis = 1, inplace=True)
 #rename handgun coloumn for consistensy
 gun_df.rename(columns={ "handgun":  "hand_gun"}, inplace=True)
+# Check for missing values
+gun_df.isnull().sum()
+# deal with null values - drop rows with null value
+gun_df.dropna(axis = 0, inplace=True)
+# Check for missing values
+gun_df.isnull().sum()
+
+# convert data types
+gun_df.info()
+gun_df['month'] = pd.to_datetime(gun_df.month)
+gun_df['month'] = gun_df['month'].dt.to_period('M')
+
+gun_df['hand_gun'] = gun_df['hand_gun'].astype(int)
+gun_df['long_gun'] = gun_df['long_gun'].astype(int)
+gun_df.info()
+
+gun_df.describe()
+
 #get a column for the totals
 gun_df['total'] = gun_df['hand_gun'] + gun_df['long_gun']
-
