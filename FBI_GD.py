@@ -124,8 +124,18 @@ merged_df.plot(x='median_household_income', y= 'gun_checks_prop', kind = 'scatte
 
 merged_df['long_gun_prop'] = merged_df.long_gun/merged_df.pop_est
 
-merged_df.plot(x='%_under_18', y= 'long_gun_prop', kind = 'scatter');
+merged_df.plot(x='%_under_18', y= 'long_gun_prop', kind = 'scatter')
+plt.title('Some Title')
+plt.xlabel('Some X Label')
+plt.ylabel('Some Y Label');
 
+
+# Looks like the
+
+#  Use this, and more code cells, to explore your data. Don't forget to add
+
+> **Tip**: Once you are satisfied with your work, you should save a copy of the report in HTML or PDF form via the **File** > **Download as** submenu. Before exporting your report, check over it to make sure that the flow of the report is complete. You should probably remove all of the "Tip" quotes like this one so that the presentation is as tidy as possible. Congratulations!
+   Markdown cells to document your observations and findings.
 
 
 
