@@ -35,10 +35,10 @@ census_df.head()
 # Transpose the census table
 census_df = census_df.T
 # select relevant columns
-census_df = census_df.iloc[:, [0,6,8,13,35,47,49]]
+census_df = census_df.iloc[:, [0,6,8,13,19,35,47,49]]
 
 new_col_names = ['pop_est', '%_under_18', '%_over_65', 
-                 '%_black', '%_deg', 'median_household_income' , 
+                 '%_black','%_white', '%_degree', 'median_household_income' , 
                  '%_poverty']
 census_df.columns = new_col_names
 # Check for missing values
@@ -52,7 +52,7 @@ census_df['pop_est'] = census_df['pop_est'].str.replace(',','').astype(int)
 census_df['median_household_income'] = census_df['median_household_income'].str.replace('$','')
 census_df['median_household_income'] = census_df['median_household_income'].str.replace(',','').astype(int)
 
-cols = ['%_under_18', '%_over_65', '%_black', '%_deg','%_poverty']
+cols = ['%_under_18', '%_over_65', '%_black', '%_white','%_degree','%_poverty']
 for c in cols:
     census_df[c] = census_df[c].str.replace('%','').astype(float)
     census_df[c] = census_df[c].apply(lambda x: x*100 if x < 1 else x)
@@ -83,3 +83,57 @@ gun_df.describe()
 
 #get a column for the totals
 gun_df['total'] = gun_df['hand_gun'] + gun_df['long_gun']
+
+
+
+################Explore
+gun_df.groupby('month')['total'].mean().plot(kind = 'line')
+
+gun_df.groupby('state')['total'].mean().plot(kind = 'bar')
+
+groupby_state = gun_df.groupby('state').mean()
+top_states = groupby_state.query('total > total.mean()')
+top_states.groupby('state')['total'].mean().plot(kind = 'bar')
+
+census_df['pop_est'].plot(kind = 'bar')
+
+census_df['pop_est'].sort_values(ascending=False).plot(kind = 'bar')
+
+
+gun_df.query('state == "California"').plot(x='month', y= 'total', kind = 'line');
+
+census_df.query('pop_est > pop_est.mean()')
+census_df.pop_est.mean()
+
+# merge (gun_df.groupby('state').mean())  and (census_df)
+
+state_df = gun_df.query('month.dt.year >= 2015').groupby('state').mean()
+
+merged_df = pd.merge(state_df,census_df, left_on='state', right_index=True, how='inner')
+merged_df.rename(columns={ "total":  "gun_checks_mean"}, inplace=True)
+merged_df['gun_checks_prop'] = merged_df.gun_checks_mean/merged_df.pop_est
+
+merged_df.plot(x='%_black', y= 'gun_checks_prop', kind = 'scatter');
+merged_df.plot(x='%_white', y= 'gun_checks_prop', kind = 'scatter');
+merged_df.plot(x='%_poverty', y= 'gun_checks_prop', kind = 'scatter');
+merged_df.plot(x='%_degree', y= 'gun_checks_prop', kind = 'scatter');
+merged_df.plot(x='%_under_18', y= 'gun_checks_prop', kind = 'scatter');
+merged_df.plot(x='%_over_65', y= 'gun_checks_prop', kind = 'scatter');
+merged_df.plot(x='median_household_income', y= 'gun_checks_prop', kind = 'scatter');
+
+
+merged_df['long_gun_prop'] = merged_df.long_gun/merged_df.pop_est
+
+merged_df.plot(x='%_under_18', y= 'long_gun_prop', kind = 'scatter');
+
+
+
+
+
+
+
+# What is the overall trend of gun purchases?
+gun_df.groupby('month')['total'].mean().plot(kind = 'line')
+
+# Which states are the top five highest in total background checks for issuance (1998-2017) of hand guns & long guns?
+gun_df.groupby('state')['total'].sum().nlargest(5).plot(kind = 'bar')
